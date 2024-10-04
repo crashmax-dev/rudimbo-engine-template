@@ -1,0 +1,31 @@
+@font-face {
+  font-family: 'Minecraft';
+  src: url(./assets/minecraft.otf) format('opentype');
+}
+
+* {
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 100%;
+  height: 100vh;
+  background: #000;
+  overflow: hidden;
+  font-family: 'Minecraft';
+  background: #000 url(./assets/stars.png) repeat top center;
+}
+
+#app {
+  height: 100%;
+}
+
+.title {
+  color: #fff;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
