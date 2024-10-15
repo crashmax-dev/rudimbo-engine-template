@@ -9,12 +9,14 @@ export default defineConfig({
     __BUILD_DATE__: JSON.stringify(new Date().toISOString())
   },
   plugins: [
+    solarEngine({ url: 'https://solar-dust.ru/js/libs/engine/v_1_0_0/engine.min.js' }),
     viteSingleFile({ removeViteModuleLoader: true }),
     replaceSvgUrl()
   ],
   build: {
     target: 'esnext',
-    minify: true
+    minify: false,
+    modulePreload: false
   },
   resolve: {
     alias: {
@@ -39,6 +41,51 @@ function replaceSvgUrl(): Plugin {
           file.code =
             svgUrlVariable +
             file.code.replaceAll(svgUrlRegexp, `"+__SVG_URL__+"`)
+        }
+      }
+    }
+  }
+}
+
+interface SolarEngineOptions {
+  url: string
+}
+
+function solarEngine(options: SolarEngineOptions): Plugin {
+  const resolvedConfig = {
+    url: new URL(options.url),
+    virtualModuleId: 'engine',
+    engineCode: ''
+  }
+
+  return {
+    name: 'vite:solar-engine',
+    resolveId(id) {
+      if (id === resolvedConfig.virtualModuleId) {
+        return resolvedConfig.virtualModuleId
+      }
+    },
+    async load(id) {
+      if (id === resolvedConfig.virtualModuleId) {
+        if (!resolvedConfig.engineCode) {
+          const response = await fetch(resolvedConfig.url)
+          resolvedConfig.engineCode = await response.text()
+        }
+
+        return resolvedConfig.engineCode
+      }
+    },
+    async config() {
+      return {
+        build: {
+          rollupOptions: {
+            external: [resolvedConfig.virtualModuleId],
+            output: {
+              paths: {
+                engine: resolvedConfig.url.pathname
+              }
+            }
+          }
         }
       }
     }

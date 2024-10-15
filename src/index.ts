@@ -1,5 +1,6 @@
 import { el } from '@zero-dependency/dom'
 import { version } from './version'
+import './engine'
 import '@/style.scss'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
