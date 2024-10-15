@@ -9,23 +9,27 @@
 }
 
 body {
-  width: 100%;
-  height: 100vh;
-  background: #000;
+  height: 100dvh;
   overflow: hidden;
   font-family: 'Minecraft';
   background: #000 url(./assets/stars.png) repeat top center;
+  color: #fff;
 }
 
 #app {
   height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .title {
-  color: #fff;
-  height: 100%;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  text-align: center;
+}
+
+.version {
+  font-size: 12px;
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
 }
