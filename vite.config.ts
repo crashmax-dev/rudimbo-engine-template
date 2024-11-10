@@ -13,6 +13,13 @@ export default defineConfig({
     viteSingleFile({ removeViteModuleLoader: true }),
     replaceSvgUrl()
   ],
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler',
+      },
+    },
+  },
   build: {
     target: 'esnext',
     minify: 'terser',
