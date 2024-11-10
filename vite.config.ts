@@ -15,8 +15,13 @@ export default defineConfig({
   ],
   build: {
     target: 'esnext',
-    minify: false,
-    modulePreload: false
+    minify: 'terser',
+    modulePreload: false,
+    terserOptions: {
+      format: {
+        comments: false,
+      },
+    },
   },
   resolve: {
     alias: {
@@ -25,11 +30,33 @@ export default defineConfig({
   }
 })
 
+
+interface Replacer {
+  variableName: string
+  regexp: RegExp
+  code: string
+}
+
 function replaceSvgUrl(): Plugin {
-  const svgUrl = 'http://www.w3.org/2000/svg'
-  const svgUrlRegexp = new RegExp(svgUrl, 'g')
-  const svgUrlBase64 = btoa(svgUrl)
-  const svgUrlVariable = `const __SVG_URL__ = atob("${svgUrlBase64}");`
+  const urls = [
+    'https://vuejs.org/error',
+    'http://www.w3.org/2000/svg',
+    'http://www.w3.org/1998/Math/MathML',
+    'http://www.w3.org/1999/xlink',
+  ]
+
+  function createUrlReplacer(url: string): Replacer {
+    const regexp = new RegExp(url, 'g')
+    const base64 = btoa(url)
+    const variableName = url.split('/').at(-1)!
+    const code = `const __${variableName}__ = atob('${base64}');`
+
+    return {
+      variableName,
+      regexp,
+      code,
+    }
+  }
 
   return {
     name: 'vite:replace-svg-url',
@@ -37,15 +64,29 @@ function replaceSvgUrl(): Plugin {
     generateBundle(_, bundle) {
       for (const bundleIndex in bundle) {
         const file = bundle[bundleIndex]
-        if (file.type === 'chunk' && svgUrlRegexp.test(file.code)) {
-          file.code =
-            svgUrlVariable +
-            file.code.replaceAll(svgUrlRegexp, `"+__SVG_URL__+"`)
+        if (file.type === 'chunk') {
+          const replacers: Replacer[] = []
+          for (const url of urls) {
+            replacers.push(createUrlReplacer(url))
+          }
+
+          let code = file.code
+          for (const replacer of replacers) {
+            code = code.replaceAll(
+              replacer.regexp,
+              `"+__${replacer.variableName}__+"`,
+            )
+          }
+
+          file.code = replacers
+            .map((replacer) => replacer.code)
+            .join('') + code
         }
       }
-    }
+    },
   }
 }
+
 
 interface SolarEngineOptions {
   url: string
